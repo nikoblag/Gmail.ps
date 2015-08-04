@@ -13,8 +13,10 @@ function New-GmailSession {
     $guser = $Credential.UserName
     $gpass = $Credential.GetNetworkCredential().Password
     
-    $session = New-Object -TypeName AE.Net.Mail.ImapClient -ArgumentList $ghost,$guser,$gpass,Login,$gport,$true,$false
-    $GmailSessions += $session
+    try {$session = New-Object -TypeName AE.Net.Mail.ImapClient -ArgumentList $ghost,$guser,$gpass,Login,$gport,$true,$false -ErrorAction STOP}
+    #catch [Constructor.Invoked.Throw.Exception]{Write-warning "Check credentials and try again"}
+    catch {Write-warning "Check credentials and try again"}
+    $global:GmailSessions += $session
     $session
 
 <#
@@ -128,7 +130,8 @@ function Invoke-GmailSession {
 }
 
 function Get-GmailSession {
-    $GmailSessions
+
+    $global:GmailSessions
 
 <#
 .Synopsis
@@ -161,7 +164,7 @@ function Clear-GmailSession {
 function Get-Mailbox {
     [CmdletBinding(DefaultParameterSetName = "DefaultFolder")]
     param(
-        [Parameter(Mandatory = $true, ValueFromPipeline = $true, ValueFromPipelineByPropertyName = $true)]
+        [Parameter(ValueFromPipeline = $true, ValueFromPipelineByPropertyName = $true)]
         [AE.Net.Mail.ImapClient]$Session,
 
         [Parameter(Position = 0, ValueFromPipelineByPropertyName = $true, ParameterSetName = "DefaultFolder")]
@@ -171,6 +174,8 @@ function Get-Mailbox {
         [Parameter(ValueFromPipelineByPropertyName = $true, ParameterSetName = "LabelFolder")]
         [string]$Label
     )
+
+    if ($Session -eq $null) {[AE.Net.Mail.ImapClient]$Session = $Global:GmailSessions}
 
     if ($Label) {
         $mailbox = $Session.SelectMailbox($Label)
@@ -246,6 +251,8 @@ function Get-Message {
         [switch]$Undraft,
         [switch]$Prefetch
     )
+
+    if ($Session -eq $null) {[AE.Net.Mail.ImapClient]$Session = $Global:GmailSessions}
 
     $imap = @()
     $xgm = @()
@@ -340,6 +347,8 @@ function Get-Message {
             $criteria = $gmcr
         }
     }
+
+    if ($criteria -eq $null){write-debug "troubleshoot `$criteria"}
 
     $result = $Session.Search('(' + $criteria + ')');
     $i = 1
