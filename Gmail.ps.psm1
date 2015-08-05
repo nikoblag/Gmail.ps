@@ -343,12 +343,16 @@ function Get-Message {
         $gmcr = 'X-GM-RAW "' + ($xgm -join ' ') + '"'
         if ($imap.Length -gt 0) {
             $criteria = $criteria + ' (' + $gmcr + ')'
-        } else {
-            $criteria = $gmcr
-        }
+        } 
     }
+    else {
+            $criteria = "UNSEEN"
+        }
 
-    if ($criteria -eq $null){write-debug "troubleshoot `$criteria"}
+    if ($criteria -eq $null){
+        #if no other valid criteria were provided, at least display unread mail
+        $imap += "UNSEEN"
+        }
 
     $result = $Session.Search('(' + $criteria + ')');
     $i = 1
