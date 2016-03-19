@@ -273,7 +273,7 @@ function Get-Message {
     }
 
     if ($On) {
-        $imap += 'ON "' + $(GetRFC2060Date $After) + '"'
+        $imap += 'ON "' + $(GetRFC2060Date $On) + '"'
     }
 
     if ($From) {
@@ -285,11 +285,11 @@ function Get-Message {
     }
 
     if ($After) {
-        $imap += 'AFTER "' + $(GetRFC2060Date $After) + '"'
+        $imap += 'SENTSINCE "' + $(GetRFC2060Date $After) + '"'
     }
 
     if ($Before) {
-        $imap += 'BEFORE "' + $(GetRFC2060Date $Before) + '"'
+        $imap += 'SENTBEFORE "' + $(GetRFC2060Date $Before) + '"'
     }
 
     if ($Cc) {
@@ -331,7 +331,7 @@ function Get-Message {
     if ($imap.Length -gt 0) {
         $criteria = ($imap -join ') (')
     }
-
+    
     if ($xgm.Length -gt 0) {
         $gmcr = 'X-GM-RAW "' + ($xgm -join ' ') + '"'
         if ($imap.Length -gt 0) {
@@ -340,8 +340,8 @@ function Get-Message {
             $criteria = $gmcr
         }
     }
-
-    $result = $Session.Search('(' + $criteria + ')');
+        
+    $result = $Session.Search("($criteria)");
     $i = 1
 
     foreach ($item in $result) {
